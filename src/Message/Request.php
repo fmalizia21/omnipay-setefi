@@ -2,6 +2,7 @@
 
 namespace SimoTod\OmnipaySetefi\Message;
 
+use Exception;
 use Omnipay\Common\Message\AbstractRequest;
 
 class Request extends AbstractRequest
@@ -39,21 +40,9 @@ class Request extends AbstractRequest
         $redirectUrl = null;
 
         try {
-            $tokenRequest = $this->httpClient
-                ->post($this->getEndpoint())
-                ->setPostField('id', $this->getParameter('id'))
-                ->setPostField('password', $this->getParameter('password'))
-                ->setPostField('operationType', self::OP_TYPE_INIT)
-                ->setPostField('amount', $this->getParameter('amount'))
-                ->setPostField('currencycode', $this->getParameter('currency'))
-                ->setPostField('language', $this->getParameter('language'))
-                ->setPostField('responseToMerchantUrl', $this->getParameter('returnUrl'))
-                ->setPostField('recoveryUrl', $this->getParameter('cancelUrl'))
-                ->setPostField('merchantOrderId', $this->getParameter('transactionId'))
-                ->setPostField('description', $this->getParameter('description'));
-            $tokenResponse = $tokenRequest->send();
+            $tokenRequest = $this->httpClient->request('POST', $this->getEndpoint(), [], http_build_query($data, '', '&'));
 
-            $xml = simplexml_load_string($tokenResponse->getBody()->__toString());
+            $xml = simplexml_load_string($tokenRequest->getBody()->getContents());
 
             if ($xml->errorcode) {
                 $newData["reference"] = null;
